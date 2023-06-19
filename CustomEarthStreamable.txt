@@ -1,0 +1,163 @@
+local Aiming = loadstring(game:HttpGet("https://raw.githubusercontent.com/topillesrevenge/Streamable-Silent/main/Side"))()
+Aiming.TeamCheck(false)
+
+local Workspace = game:GetService("Workspace")
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+
+local LocalPlayer = Players.LocalPlayer
+local Mouse = LocalPlayer:GetMouse()
+local CurrentCamera = Workspace.CurrentCamera
+
+local DaHoodSettings = {
+    SilentAim = true,
+    AimLock = false,
+    Prediction = 0.11243,
+    AimLockKeybind = Enum.KeyCode.E
+}
+getgenv().DaHoodSettings = DaHoodSettings
+
+function Aiming.Check()
+    if not (Aiming.Enabled == true and Aiming.Selected ~= LocalPlayer and Aiming.SelectedPart ~= nil) then
+        return false
+    end
+
+    local Character = Aiming.Character(Aiming.Selected)
+    local KOd = Character:WaitForChild("BodyEffects")["K.O"].Value
+    local Grabbed = Character:FindFirstChild("GRABBING_CONSTRAINT") ~= nil
+
+    if (KOd or Grabbed) then
+        return false
+    end
+
+    return true
+end
+
+local __index
+__index = hookmetamethod(game, "__index", function(t, k)
+    if (t:IsA("Mouse") and (k == "Hit" or k == "Target") and Aiming.Check()) then
+        local SelectedPart = Aiming.SelectedPart
+
+        if (DaHoodSettings.SilentAim and (k == "Hit" or k == "Target")) then
+            local Hit = SelectedPart.CFrame + (SelectedPart.Velocity * DaHoodSettings.Prediction)
+
+            return (k == "Hit" and Hit or SelectedPart)
+        end
+    end
+
+    return __index(t, k)
+end)
+
+RunService:BindToRenderStep("AimLock", 0, function()
+    if (DaHoodSettings.AimLock and Aiming.Check() and UserInputService:IsKeyDown(DaHoodSettings.AimLockKeybind)) then
+        local SelectedPart = Aiming.SelectedPart
+
+        local Hit = SelectedPart.CFrame + (SelectedPart.Velocity * DaHoodSettings.Prediction)
+
+        CurrentCamera.CFrame = CFrame.lookAt(CurrentCamera.CFrame.Position, Hit.Position)
+    end
+end)
+
+local player = game.Players.LocalPlayer
+local mouse = player:GetMouse()
+mouse.KeyDown:Connect(function(key)
+    if key == "x" then
+        DaHoodSettings.SilentAim = not DaHoodSettings.SilentAim
+    end
+end)
+
+local Rayfield = loadstring(game:HttpGet('https://raw.githubusercontent.com/shlexware/Rayfield/main/source'))()
+
+-- Create the UI window
+local Window = Rayfield:CreateWindow({
+   Name = "Script Settings",
+   LoadingTitle = "Rayfield Interface Suite",
+   LoadingSubtitle = "by Sirius",
+   ConfigurationSaving = {
+      Enabled = true,
+      FolderName = nil, -- Create a custom folder for your hub/game
+      FileName = "ScriptSettings"
+   },
+})
+
+-- Create a tab for the script settings
+local Tab = Window:CreateTab({
+   Name = "Script Options"
+})
+
+-- Create a slider for "Fov Size"
+local FovSizeSlider = Tab:CreateSlider({
+   Name = "Fov Size",
+   Range = {0, 100},
+   Increment = 1,
+   Suffix = "",
+   CurrentValue = 25,
+   Flag = "FovSize",
+   Callback = function(Value)
+      -- Update the script setting
+      Aiming.FOV = Value
+   end,
+})
+
+-- Create an input for "Prediction"
+local PredictionInput = Tab:CreateInput({
+   Name = "Prediction",
+   PlaceholderText = "Enter Prediction",
+   RemoveTextAfterFocusLost = false,
+   Callback = function(Text)
+      -- Update the script setting
+      DaHoodSettings.Prediction = tonumber(Text)
+   end,
+})
+
+-- Create a slider for "Fov Sides"
+local FovSidesSlider = Tab:CreateSlider({
+   Name = "Fov Sides",
+   Range = {0, 100},
+   Increment = 1,
+   Suffix = "",
+   CurrentValue = 25,
+   Flag = "FovSides",
+   Callback = function(Value)
+      -- Update the script setting
+      Aiming.FOVSides = Value
+   end,
+})
+
+-- Create a toggle for "Show Fov"
+local ShowFovToggle = Tab:CreateToggle({
+   Name = "Show Fov",
+   CurrentValue = false,
+   Flag = "ShowFov",
+   Callback = function(Value)
+      -- Update the script setting
+      Aiming.ShowFOV = Value
+   end,
+})
+
+-- Create a dropdown for "Target Part"
+local TargetPartDropdown = Tab:CreateDropdown({
+   Name = "Target Part",
+   Options = {
+      "Head", "LeftHand", "RightHand", "LeftLowerArm", "RightLowerArm",
+      "LeftUpperArm", "RightUpperArm", "LeftFoot", "LeftLowerLeg",
+      "UpperTorso", "HumanoidRootPart", "LeftUpperLeg", "RightLowerLeg",
+      "RightFoot", "LowerTorso"
+   },
+   CurrentOption = {"Head", "LeftHand", "RightHand", "LeftLowerArm", "RightLowerArm", "LeftUpperArm", "RightUpperArm", "LeftFoot", "LeftLowerLeg", "UpperTorso", "HumanoidRootPart", "LeftUpperLeg", "RightLowerLeg", "RightFoot", "LowerTorso"},
+   MultipleOptions = true,
+   Flag = "TargetPart",
+   Callback = function(Option)
+      -- Update the script setting
+      Aiming.TargetPart = Option
+   end,
+})
+
+loadstring(game:HttpGet("https://raw.githubusercontent.com/topillesrevenge/Streamable-Silent/main/Main"))()
+DaHoodSettings.Prediction = 0.121
+Aiming.TargetPart = {"Head", "LeftHand", "RightHand", "LeftLowerArm", "RightLowerArm", "LeftUpperArm", "RightUpperArm", "LeftFoot", "LeftLowerLeg", "UpperTorso", "HumanoidRootPart", "LeftUpperLeg", "RightLowerLeg", "RightFoot", "LowerTorso"}
+Aiming.FOV = 25
+Aiming.FOVSides = 25
+Aiming.HitChance = 400
+Aiming.ShowFOV = false
